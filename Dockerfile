@@ -1,9 +1,9 @@
-FROM haskell:7.8
+FROM haskell:7.10
 
 RUN cabal update
 
 # Add .cabal file
-ADD ./server/scotty-docker.cabal /opt/server/scotty-docker.cabal
+ADD ./server/users-service.cabal /opt/server/users-service.cabal
 
 # Docker will cache this command as a layer, freeing us up to
 # modify source code without re-installing dependencies
@@ -18,4 +18,4 @@ ENV PATH /root/.cabal/bin:$PATH
 
 # Default Command for Container
 WORKDIR /opt/server
-CMD ["scotty-docker"]
+CMD ["users-service"]
