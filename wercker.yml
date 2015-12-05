@@ -3,6 +3,11 @@ build:
   steps:
     - script:
         cwd: server/
+        name: cabal-update
+        code: |
+          cabal update
+    - script:
+        cwd: server/
         name: cabal-install
         code: |
           cabal install --enable-tests
