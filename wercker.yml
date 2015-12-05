@@ -1,0 +1,14 @@
+box: haskell:7.10
+build:
+  steps:
+    - script:
+        cwd: server/
+        name: cabal-install
+        code: |
+          cabal install --enable-tests
+    - script:
+        cwd: server/
+        name: cabal-test
+        code: |
+          cabal test
+
