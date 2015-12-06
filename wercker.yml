@@ -1,4 +1,22 @@
 box: haskell:7.10
+dev:
+  steps:
+    - script:
+        cwd: server/
+        name: cabal-update
+        code: |
+          cabal update
+    - script:
+        cwd: server/
+        name: cabal-install
+        code: |
+          cabal install --enable-tests
+    - internal/watch:
+        cwd: server/
+        code: |
+          cabal test
+          cabal run
+        reload: true
 build:
   steps:
     - script:
