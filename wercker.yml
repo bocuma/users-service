@@ -21,17 +21,33 @@ build:
   steps:
     - script:
         cwd: server/
-        name: cabal-update
+        name: update
         code: |
           cabal update
     - script:
         cwd: server/
-        name: cabal-install
+        name: install
         code: |
           cabal install --enable-tests
     - script:
         cwd: server/
-        name: cabal-test
+        name: test
         code: |
           cabal test
+    - script:
+        name: copy artifact
+        code: |
+          cp server/dist/build/users-service/users-service "$WERCKER_OUTPUT_DIR"
+          ls "$WERCKER_OUTPUT_DIR"
+deploy:
+  box: haskell:7.10
+  steps:
+    - internal/docker-push:
+      username: $DOCKER_USER
+      password: $DOCKER_PASS
+      tag: $WERCKER_GIT_COMMIT
+      repository: cammellos/users-service
+      cmd: "./pipeline/source/users-service"
+      ports: 3000
+      registry: https://registry.hub.docker.com
 
