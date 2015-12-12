@@ -1,16 +1,23 @@
-# Scotty + Docker
+# Users service
 
-A dockerized Haskell web service.
+Simple AUTH API
 
-## Mac Setup Steps
+## To run
 
-* Install [VirtualBox](https://www.virtualbox.org/)
-* Install [docker-machine](https://docs.docker.com/machine/)
-* Run: `docker-machine create --driver virtualbox dev`
-* Run: `docker-machine ls` and ensure that your `dev` VM is running. If it is not, run: `docker-machine start dev`. Make note of the `dev` VM's IP address for later use.
-* Clone this repo somewhere
-* Change CWD to new directory containing repo codes
-* Run: `eval "$(docker-machine env dev)"`
-* Run: `docker build -t scotty-docker .`
-* Run: `docker run -i -t -p 3001:3000 scotty-docker`
-* Open browser and make a request to: `http://IP_NOTED_IN_EARLIER_STEP:3001/flarp`
+From the `server` directory: 
+
+`cabal install`
+
+`cabal run`
+
+## To run the tests
+
+From the `server` directory: 
+
+`cabal sandbox init`
+
+`cabal install --enable-tests`
+
+`cabal test`
+
+
