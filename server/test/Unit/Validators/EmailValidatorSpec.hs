@@ -2,7 +2,6 @@
 module Unit.Validators.EmailValidatorSpec (spec) where
 
 import Test.Hspec
-import Control.Exception (evaluate)
 
 import Validators.EmailValidator
 import qualified Models.Errors.Code as EC
@@ -19,12 +18,12 @@ spec = do
         isValid "@somewhere.com" `shouldBe` Left [EC.invalidEmail]
 
     describe "the email is valid" $ do
-      it "returns True" $ do
-        isValid "valid@email.com" `shouldBe` Right True
+      it "returns an empty array" $ do
+        isValid "valid@email.com" `shouldBe` Right []
 
     describe "the email has no domain" $ do
       it "is surprisingly valid ( someone@localhost )" $ do
-        isValid "someone@something" `shouldBe` Right True
+        isValid "someone@something" `shouldBe` Right []
 
 
 

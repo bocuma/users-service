@@ -20,6 +20,6 @@ spec = do
       it "returns both error messages" $ do
         isValid "abcdefg" `shouldBe` Left [EC.passwordTooShort, EC.passwordNoNumber]
     describe "the password is more than 8 characters and contains a number" $ do
-      it "returns True" $ do
-        isValid "abcdefg1" `shouldBe` Right True
+      it "returns Right []" $ do
+        isValid "abcdefg1" `shouldBe` Right []
 
