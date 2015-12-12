@@ -12,3 +12,4 @@ data User = User {
 } deriving (Generic, Show)
 
 instance ToJSON User
+instance FromJSON User
