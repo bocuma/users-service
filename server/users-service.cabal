@@ -17,6 +17,7 @@ executable users-service
   main-is:             Main.hs
   build-depends:       base >=4.7 && <5
                        , scotty
+                       , email-validate
   hs-source-dirs:      src
   default-language:    Haskell2010
 
