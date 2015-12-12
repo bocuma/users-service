@@ -2,6 +2,26 @@
 
 Simple AUTH API
 
+## Endpoints
+
+`POST /users`
+
+Valid payload: 
+
+``` 
+{
+  "email": "valid@email.com",
+  "password": "validpassword1"
+} 
+```
+
+Returns `201` if user is valid
+
+Returns `400` if user is in the wrong format
+
+Returns `422` if validation does not pass
+
+
 ## To run
 
 From the `server` directory: 
