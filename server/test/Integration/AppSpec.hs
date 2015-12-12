@@ -13,6 +13,7 @@ import qualified Data.Aeson                 as Aeson
 import qualified Models.Errors.Response                 as ER
 import qualified Models.Errors.Code                 as EC
 import Models.User
+import Database.MongoDB
 
 app :: IO Wai.Application
 app = Scotty.scottyApp App.app
@@ -35,9 +36,22 @@ invalidEmailAndPasswordUser = User { email = "invalid", password = "short"}
 invalidEmailAndPasswordUserResponse :: ER.Response
 invalidEmailAndPasswordUserResponse = ER.Response { ER.email = [EC.invalidEmail], ER.password = [EC.passwordTooShort, EC.passwordNoNumber]}
 
+testDBName = "users"
+
+db :: Action IO a -> IO a
+db action = do
+    pipe <- connect (host "127.0.0.1")
+    result <- access pipe master testDBName action
+    close pipe
+    return result
+
+withCleanDatabase :: ActionWith () -> IO ()
+withCleanDatabase action = dropDB >> action () >> dropDB >> return ()
+  where
+    dropDB = db $ dropDatabase "users"
 
 spec :: Spec
-spec = with app $ do
+spec = around withCleanDatabase $ with app $ do
   describe "POST /users" $ do
     describe "when the user is valid" $ do
       it "returns 201" $ do
@@ -48,6 +62,10 @@ spec = with app $ do
     describe "when the json is well-formed but wrong data structure" $ do
       it "returns 400" $ do
         post "/users" "{\"a\": \"b\"}"  `shouldRespondWith`  400
+    describe "when the user exists" $ do
+      it "returns 422" $ do
+        post "/users" (Aeson.encode validUser) `shouldRespondWith` 201
+        post "/users" (Aeson.encode validUser) `shouldRespondWith` 422
     describe "when the user has an invalid email" $ do
       it "returns 422" $ do
         post "/users" (Aeson.encode invalidEmailUser)  `shouldRespondWith`  "" {
