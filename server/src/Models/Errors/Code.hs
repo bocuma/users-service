@@ -20,6 +20,6 @@ passwordTooShort :: Code
 passwordTooShort = Code {code = 101, message =  "Password must be minimum 6 characters"}
 
 passwordNoNumber :: Code
-passwordNoNumber = Code {code = 100, message =  "Password must contain at least a number"}
+passwordNoNumber = Code {code = 102, message =  "Password must contain at least a number"}
 
 instance ToJSON Code

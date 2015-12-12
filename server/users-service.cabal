@@ -20,11 +20,13 @@ executable users-service
                        , bytestring
                        , bson
                        , email-validate
+                       , jwt
                        , http-types
                        , mongoDB
                        , pwstore-fast
                        , wai-extra
                        , scotty
+                       , time
                        , transformers
                        , text
   hs-source-dirs:      src

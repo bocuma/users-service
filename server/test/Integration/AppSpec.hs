@@ -50,12 +50,26 @@ withCleanDatabase action = dropDB >> action () >> dropDB >> return ()
   where
     dropDB = db $ dropDatabase "users"
 
+matchTokenPresence :: MatchHeader
+matchTokenPresence =
+  MatchHeader $ \headers ->
+    case (filter (\h -> (fst h) == "X-Token") headers) of 
+      [] -> Just "NOTFOUND"
+      otherwise -> Nothing
+ 
+
+
+signedToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJleGFtcGxlLmNvbSIsImlhdCI6MTQ0OTkzNzcyOCwiZXhwIjoxNDgxNDczNzI4LCJhdWQiOiJleGFtcGxlLmNvbSIsInN1YiI6InZhbGlkQGVtYWlsLmNvbSIsImVtYWlsIjoidmFsaWRAZW1haWwuY29tIn0.ONw0jw-wMcA4RqPofLVPnSt9KaxZurm-sRYUty1xCAY"
+
 spec :: Spec
 spec = around withCleanDatabase $ with app $ do
   describe "POST /users" $ do
     describe "when the user is valid" $ do
-      it "returns 201" $ do
-        post "/users" (Aeson.encode validUser) `shouldRespondWith` 201
+      it "returns 201 and a valid token" $ do
+        post "/users" (Aeson.encode validUser) `shouldRespondWith` "" {
+          matchHeaders = [matchTokenPresence],
+          matchStatus = 201
+        }
     describe "when the json is malformed" $ do
       it "returns 400" $ do
         post "/users" "malformed}"  `shouldRespondWith`  400
