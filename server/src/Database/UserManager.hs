@@ -18,13 +18,13 @@ import Database.MongoDB    (Action, at, Document, Document, Value, access,
                             select, sort, (=:))
 import qualified Models.Errors.Response as ER
 
-save :: User -> IO ()
 save user = 
   do
     pipe <- connect (host "127.0.0.1")
     ps <- liftIO $ makePassword (B.pack (password user)) 17
     res <- access pipe master "users" (insert "users" ["_id" =: (email user), "password" =: (B.unpack ps)])
     close pipe
+    return $ Just res
 
 authenticate :: User -> IO Bool
 authenticate user = 

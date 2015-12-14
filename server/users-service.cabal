@@ -23,6 +23,7 @@ executable users-service
                        , http-types
                        , mongoDB
                        , pwstore-fast
+                       , wai-extra
                        , scotty
                        , transformers
                        , text

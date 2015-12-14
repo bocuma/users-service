@@ -13,12 +13,19 @@ import Data.Maybe (fromJust)
 import Models.User
 import Control.Monad
 import Control.Monad.IO.Class
+import Control.Exception
+import Network.Wai.Middleware.RequestLogger
 
 status422 :: Network.HTTP.Types.Status
 status422 = (mkStatus 422 "Unprocessable Entity")
 
+catchAny :: IO a -> (SomeException -> IO a) -> IO a
+catchAny = Control.Exception.catch
+
 app :: ScottyM ()
 app = do
+  middleware logStdoutDev
+
   post "/users/authenticate" $ do
     requestBody <- body
     let user = Aeson.decode requestBody :: Maybe User
@@ -39,9 +46,12 @@ app = do
     case user of
       Just value -> 
         case (UV.isValid $ fromJust user) of
-          Right response -> do
-            res <- liftIO $ UM.save (fromJust user)
-            status status201
-
+          Right _ -> do
+            res <- liftIO $ catchAny (UM.save (fromJust user)) $ \e ->
+             do
+               return $ Nothing
+            case res of 
+              Just _ -> status status201
+              Nothing -> status status422
           Left response ->  status status422 >>  (json $ response)
       Nothing -> status status400
