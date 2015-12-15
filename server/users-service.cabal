@@ -27,6 +27,7 @@ executable users-service
                        , wai-extra
                        , scotty
                        , time
+                       , split
                        , transformers
                        , text
   hs-source-dirs:      src

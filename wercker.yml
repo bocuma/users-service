@@ -18,6 +18,8 @@ dev:
           cabal run
         reload: true
 build:
+  services:
+    - id: mongo
   steps:
     - script:
         cwd: server/

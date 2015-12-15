@@ -5,6 +5,12 @@ module Integration.App.AuthenticateSpec (spec) where
 import Test.Hspec
 import Test.Hspec.Wai
 import Network.HTTP.Types
+import System.Environment (lookupEnv)
+
+
+import Control.Monad
+import Control.Monad.IO.Class
+import Data.List.Split (splitOn)
 
 
 import qualified App
@@ -26,6 +32,13 @@ testDBName = "users"
 
 tokenEmail = "test@email.com"
 
+getEnvOr :: String -> String -> IO String
+getEnvOr key defaultValue = do
+  value <- lookupEnv key
+  case value of 
+    Just something ->  return something
+    Nothing -> return defaultValue
+
 app :: IO Wai.Application
 app = Scotty.scottyApp App.app
 
@@ -35,9 +48,13 @@ validUser = User { email = "valid@email.com", password = "validpassword1"}
 invalidUser :: User
 invalidUser = User { email = "valid@email.com", password = "invalidpassword1"}
 
+stripProtocol :: String -> String
+stripProtocol string = last $ splitOn "//" string
+ 
 db :: DB.Action IO a -> IO a
 db action = do
-    pipe <- DB.connect (DB.host "127.0.0.1")
+    hostString <- liftM stripProtocol $ getEnvOr "MONGO_PORT" "tcp://127.0.0.1:27017"
+    pipe <- DB.connect (DB.readHostPort hostString)
     result <- DB.access pipe DB.master testDBName action
     DB.close pipe
     return result

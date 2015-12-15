@@ -4,6 +4,11 @@ module Integration.AppSpec (spec) where
 
 import Test.Hspec
 import Test.Hspec.Wai
+import System.Environment (lookupEnv)
+
+import Control.Monad
+import Control.Monad.IO.Class
+import Data.List.Split (splitOn)
 
 import qualified App
 import qualified Web.Scotty                 as Scotty
@@ -17,6 +22,15 @@ import Database.MongoDB
 
 app :: IO Wai.Application
 app = Scotty.scottyApp App.app
+
+getEnvOr :: String -> String -> IO String
+getEnvOr key defaultValue = do
+  value <- lookupEnv key
+  case value of 
+    Just something ->  return something
+    Nothing -> return defaultValue
+
+
 
 validUser :: User
 validUser = User { email = "valid@email.com", password = "validpassword1"}
@@ -36,11 +50,19 @@ invalidEmailAndPasswordUser = User { email = "invalid", password = "short"}
 invalidEmailAndPasswordUserResponse :: ER.Response
 invalidEmailAndPasswordUserResponse = ER.Response { ER.email = [EC.invalidEmail], ER.password = [EC.passwordTooShort, EC.passwordNoNumber]}
 
+emailTakenResponse :: ER.Response
+emailTakenResponse = ER.Response { ER.email = [EC.emailTaken], ER.password = []}
+
 testDBName = "users"
 
+
+stripProtocol :: String -> String
+stripProtocol string = last $ splitOn "//" string
+ 
 db :: Action IO a -> IO a
 db action = do
-    pipe <- connect (host "127.0.0.1")
+    hostString <- liftM stripProtocol $ getEnvOr "MONGO_PORT" "tcp://127.0.0.1:27017"
+    pipe <- connect (readHostPort hostString)
     result <- access pipe master testDBName action
     close pipe
     return result
@@ -79,7 +101,9 @@ spec = around withCleanDatabase $ with app $ do
     describe "when the user exists" $ do
       it "returns 422" $ do
         post "/users" (Aeson.encode validUser) `shouldRespondWith` 201
-        post "/users" (Aeson.encode validUser) `shouldRespondWith` 422
+        post "/users" (Aeson.encode validUser) `shouldRespondWith` "" {
+          matchBody = Just (Aeson.encode emailTakenResponse),
+          matchStatus = 422 }
     describe "when the user has an invalid email" $ do
       it "returns 422" $ do
         post "/users" (Aeson.encode invalidEmailUser)  `shouldRespondWith`  "" {

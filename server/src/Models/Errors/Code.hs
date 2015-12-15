@@ -22,4 +22,7 @@ passwordTooShort = Code {code = 101, message =  "Password must be minimum 6 char
 passwordNoNumber :: Code
 passwordNoNumber = Code {code = 102, message =  "Password must contain at least a number"}
 
+emailTaken :: Code
+emailTaken = Code {code = 104, message =  "Email taken"}
+
 instance ToJSON Code

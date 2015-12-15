@@ -19,6 +19,11 @@ import Control.Monad.IO.Class
 import Control.Exception
 import Network.Wai.Middleware.RequestLogger
 import qualified Services.TokenService as TS
+import qualified Models.Errors.Code as EC
+import qualified Models.Errors.Response as ER
+
+emailTakenResponse :: ER.Response
+emailTakenResponse = ER.Response { ER.email = EC.emailTaken, ER.password = [] }
 
 status422 :: Network.HTTP.Types.Status
 status422 = (mkStatus 422 "Unprocessable Entity")
@@ -60,7 +65,7 @@ app = do
               Just _ -> do
                 token <- liftIO $ TS.get (email $ fromJust user)
                 setHeader "X-Token" token
-                status status201
+                status status201 >> (json $ emailTakenResponse)
               Nothing -> status status422
           Left response ->  status status422 >>  (json $ response)
       Nothing -> status status400
