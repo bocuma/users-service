@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings    #-}
 {-# LANGUAGE DeriveGeneric #-}
 
-module Models.Errors.Code (Code(..), invalidEmail, passwordTooShort, passwordNoNumber) where
+module Models.Errors.Code (Code(..), invalidEmail, passwordTooShort, emailTaken, passwordNoNumber) where
 
 import GHC.Generics
 import Data.Text

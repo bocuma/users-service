@@ -39,8 +39,7 @@ build:
     - script:
         name: copy artifact
         code: |
-          cp task.json server/dist/build/users-service/users-service "$WERCKER_OUTPUT_DIR"
-          ls "$WERCKER_OUTPUT_DIR"
+,         cp task.json server/dist/build/users-service/users-service "$WERCKER_OUTPUT_DIR"
 deploy:
   box: python:2.7-slim
   steps:
@@ -49,17 +48,8 @@ deploy:
       password: $DOCKER_PASS
       repository: cammellos/users-service
       cmd: "./pipeline/source/users-service"
-      ports: 3000
+      ports: 9000
       registry: https://registry.hub.docker.com
     - script:
       name: copy
       code: mkdir /app && cp task.json /app/
-    - tonnu/aws-ecs:
-      key: $AWS_ACCESS_KEY
-      secret: $AWS_SECRET_KEY
-      region: eu-west-1
-      cluster-name: dequebuzz
-      service-name: users-service
-      task-definition-name: users-service
-      task-definition-file: /app/task.json
-      minimum-running-tasks: 1
