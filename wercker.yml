@@ -39,7 +39,7 @@ build:
     - script:
         name: copy artifact
         code: |
-,         cp task.json server/dist/build/users-service/users-service "$WERCKER_OUTPUT_DIR"
+          cp server/dist/build/users-service/users-service "$WERCKER_OUTPUT_DIR"
 deploy:
   box: python:2.7-slim
   steps:
@@ -50,6 +50,3 @@ deploy:
       cmd: "./pipeline/source/users-service"
       ports: 9000
       registry: https://registry.hub.docker.com
-    - script:
-      name: copy
-      code: mkdir /app && cp task.json /app/
