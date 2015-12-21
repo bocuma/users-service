@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Helpers.Database (withCleanDatabase) where
+module Helpers.Database (withCleanDatabase, performDBAction) where
 
 import Test.Hspec
 import Test.Hspec.Wai
@@ -13,8 +13,8 @@ import Data.List.Split (splitOn)
 import System.Environment (lookupEnv)
 import qualified Helpers.Config as Config
 
-db :: Action IO a -> IO a
-db action = do
+performDBAction :: Action IO a -> IO a
+performDBAction action = do
     hostString <- Config.getConfig "MONGO_URI"
     dbName <- Config.getConfig "MONGO_DB"
     pipe <- connect $ readHostPort $ unpack hostString
@@ -22,10 +22,8 @@ db action = do
     close pipe
     return result
 
-
 withCleanDatabase :: ActionWith () -> IO ()
 withCleanDatabase action = do 
     Config.getConfig "MONGO_DB" >>= \dbName ->
-      let dropDB = db $ dropDatabase dbName
+      let dropDB = performDBAction $ dropDatabase dbName
       in dropDB >> action () >> dropDB >> return ()
-
