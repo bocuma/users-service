@@ -69,6 +69,12 @@ app = do
               Nothing -> send422 >> sendJSON emailTakenResponse
           Left response ->  send422 >>  sendJSON response
       Nothing -> send400
+  post "/users/:confirmationToken/confirm" $ do
+    confirmationToken <- param "confirmationToken"
+    valid <- liftIO $ UM.verifyConfirmation confirmationToken
+    case valid of 
+      True -> send200
+      False -> send401
   post "/tokens/verify" $ do
     requestBody <- body
     now <- liftIO getCurrentTime
