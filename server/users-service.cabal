@@ -22,6 +22,7 @@ executable users-service
                        , email-validate
                        , jwt
                        , http-types
+                       , containers
                        , mongoDB
                        , pwstore-fast
                        , wai-extra
