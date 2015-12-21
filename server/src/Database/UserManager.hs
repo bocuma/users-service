@@ -16,14 +16,19 @@ import Helpers.Database (performDBAction, randomString)
 save :: User.User -> IO (Maybe DatabaseUser.DatabaseUser)
 save user = 
   do
-    emailConfirmationToken <- randomString
+    token <- randomString
 
     ps <- liftIO $ makePassword (B.pack (User.password user)) 17
-    _ <- performDBAction (insert "users" ["_id" =: (User.email user), "password" =: (B.unpack ps), "emailConfirmationToken" =: emailConfirmationToken])
+    _ <- performDBAction (insert "users" [
+      "_id" =: (User.email user), 
+      "password" =: (B.unpack ps), 
+      "confirmed" =: False,
+      "emailConfirmationToken" =: token])
     return $ Just $ DatabaseUser.DatabaseUser { 
       DatabaseUser._id = User.email user,
       DatabaseUser.email = User.email user, 
-      DatabaseUser.emailConfirmationToken = emailConfirmationToken }
+      DatabaseUser.emailConfirmationToken = token,
+      DatabaseUser.confirmed = False}
 
 authenticate :: User.User -> IO Bool
 authenticate user = 

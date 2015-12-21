@@ -62,9 +62,9 @@ app = do
             case res of 
               Just databaseUser -> do
                 authenticationToken <- liftIO $ TS.get $ DatabaseUser._id databaseUser
-                emailConfirmationToken <- liftIO $ TS.get $ DatabaseUser.email databaseUser
+                emailToken <- liftIO $ TS.get $ DatabaseUser.email databaseUser
                 setHeader "X-Token" authenticationToken
-                setHeader "X-Confirmation-Token" emailConfirmationToken
+                setHeader "X-Confirmation-Token" emailToken
                 send201
               Nothing -> send422 >> sendJSON emailTakenResponse
           Left response ->  send422 >>  sendJSON response

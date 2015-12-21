@@ -9,7 +9,8 @@ import Data.Aeson
 data DatabaseUser = DatabaseUser {
   _id :: String,
   email :: String,
-  emailConfirmationToken :: String
+  emailConfirmationToken :: String,
+  confirmed :: Bool
 } deriving (Generic, Show)
 
 instance ToJSON DatabaseUser
