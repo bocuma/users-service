@@ -6,8 +6,6 @@ import           Control.Monad.IO.Class    (liftIO)
 import           Web.JWT
 import           Data.Text
 import qualified Data.Text.Lazy            as TL
-import qualified Data.Text.Lazy.Encoding   as TL
-import qualified Data.ByteString.Lazy      as BS
 import           Data.Time.Calendar        (fromGregorian)
 import           Data.Time.Clock           (NominalDiffTime, UTCTime (..),
                                             addUTCTime, diffUTCTime,
