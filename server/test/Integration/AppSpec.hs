@@ -5,7 +5,6 @@ module Integration.AppSpec (spec) where
 import Test.Hspec
 import Test.Hspec.Wai
 
-
 import qualified App
 import qualified Web.Scotty                 as Scotty
 import qualified Network.Wai                as Wai
@@ -14,13 +13,11 @@ import qualified Data.Aeson                 as Aeson
 import qualified Models.Errors.Response                 as ER
 import qualified Models.Errors.Code                 as EC
 import Models.User
-import Helpers.Database 
+import Helpers.DatabaseTest
+import Helpers.Matcher
 
 app :: IO Wai.Application
 app = Scotty.scottyApp App.app
-
-
-
 
 validUser :: User
 validUser = User { email = "valid@email.com", password = "validpassword1"}
@@ -42,22 +39,6 @@ invalidEmailAndPasswordUserResponse = ER.Response { ER.email = [EC.invalidEmail]
 
 emailTakenResponse :: ER.Response
 emailTakenResponse = ER.Response { ER.email = [EC.emailTaken], ER.password = []}
-
-
-
- 
-
-
-matchTokenPresence :: MatchHeader
-matchTokenPresence =
-  MatchHeader $ \headers ->
-    case (filter (\h -> (fst h) == "X-Token") headers) of 
-      [] -> Just "NOTFOUND"
-      otherwise -> Nothing
- 
-
-
-signedToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJleGFtcGxlLmNvbSIsImlhdCI6MTQ0OTkzNzcyOCwiZXhwIjoxNDgxNDczNzI4LCJhdWQiOiJleGFtcGxlLmNvbSIsInN1YiI6InZhbGlkQGVtYWlsLmNvbSIsImVtYWlsIjoidmFsaWRAZW1haWwuY29tIn0.ONw0jw-wMcA4RqPofLVPnSt9KaxZurm-sRYUty1xCAY"
 
 spec :: Spec
 spec = around withCleanDatabase $ with app $ do

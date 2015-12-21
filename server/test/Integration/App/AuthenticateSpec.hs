@@ -4,40 +4,21 @@ module Integration.App.AuthenticateSpec (spec) where
 
 import Test.Hspec
 import Test.Hspec.Wai
-import Network.HTTP.Types
-import System.Environment (lookupEnv)
-
-
-import Control.Monad
-import Control.Monad.IO.Class
-import Data.List.Split (splitOn)
-
 
 import qualified App
 import qualified Web.Scotty                 as Scotty
 import qualified Network.Wai                as Wai
 import qualified Data.Aeson                 as Aeson
-import qualified Data.Text as T
-import Data.Time.Clock (getCurrentTime)
 
-import qualified Models.Errors.Response                 as ER
-import qualified Models.Errors.Code                 as EC
 import Models.User
-import qualified Data.List as L
-import qualified Database.MongoDB as DB
 import qualified Services.TokenService as TS 
 import Data.Text.Lazy.Encoding (encodeUtf8)
 
-testDBName = "users"
+import Helpers.DatabaseTest
+import Helpers.Matcher
 
+tokenEmail :: String
 tokenEmail = "test@email.com"
-
-getEnvOr :: String -> String -> IO String
-getEnvOr key defaultValue = do
-  value <- lookupEnv key
-  case value of 
-    Just something ->  return something
-    Nothing -> return defaultValue
 
 app :: IO Wai.Application
 app = Scotty.scottyApp App.app
@@ -48,29 +29,6 @@ validUser = User { email = "valid@email.com", password = "validpassword1"}
 invalidUser :: User
 invalidUser = User { email = "valid@email.com", password = "invalidpassword1"}
 
-stripProtocol :: String -> String
-stripProtocol string = last $ splitOn "//" string
- 
-db :: DB.Action IO a -> IO a
-db action = do
-    hostString <- liftM stripProtocol $ getEnvOr "MONGO_PORT" "tcp://127.0.0.1:27017"
-    pipe <- DB.connect (DB.readHostPort hostString)
-    result <- DB.access pipe DB.master testDBName action
-    DB.close pipe
-    return result
-
-withCleanDatabase :: ActionWith () -> IO ()
-withCleanDatabase action = dropDB >> action () >> dropDB >> return ()
-  where
-    dropDB = db $ DB.dropDatabase "users"
-
-matchTokenPresence :: MatchHeader
-matchTokenPresence =
-  MatchHeader $ \headers ->
-    case (filter (\h -> (fst h) == "X-Token") headers) of 
-      [] -> Just "NOTFOUND"
-      otherwise -> Nothing
-      
 spec :: Spec
 spec = around withCleanDatabase $ with app $ do
   describe "POST /users/authenticate" $ do
@@ -89,7 +47,6 @@ spec = around withCleanDatabase $ with app $ do
     describe "verify token" $ do
       describe "using the right token" $ do
         it "returns 200" $ do
-          now <- liftIO getCurrentTime
           token <- liftIO $ TS.get tokenEmail
           post "/tokens/verify" (encodeUtf8 token) `shouldRespondWith` 200
       describe "using the wrong token" $ do
