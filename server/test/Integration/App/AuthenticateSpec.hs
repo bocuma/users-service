@@ -36,7 +36,7 @@ spec = around withCleanDatabase $ with app $ do
       it "returns 201" $ do
         post "/users" (Aeson.encode validUser) `shouldRespondWith` 201
         post "/users/authenticate" (Aeson.encode validUser) `shouldRespondWith` "" {
-          matchHeaders = [matchTokenPresence],
+          matchHeaders = [matchXTokenPresence],
           matchStatus = 200
         }
     describe "when the password is not valid" $ do

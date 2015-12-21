@@ -9,7 +9,8 @@ import qualified Database.UserManager as UM
 import Data.Text.Encoding (decodeUtf8)
 import Data.Time.Clock (getCurrentTime)
 import qualified Data.ByteString.Lazy as BL
-import Models.User
+import Models.User as User
+import Models.DatabaseUser as DatabaseUser
 import Control.Monad.IO.Class
 import Control.Exception
 import Network.Wai.Middleware.RequestLogger
@@ -41,8 +42,8 @@ app = do
             valid <- liftIO $ UM.authenticate $ user
             case valid of 
               True -> do
-                token <- liftIO $ TS.get $ email $ user
-                setHeader "X-Token" token
+                authenticationToken <- liftIO $ TS.get $ User.email $ user
+                setHeader "X-Token" authenticationToken
                 send200
               False -> send401
           Left _ ->  send401
@@ -59,9 +60,11 @@ app = do
              do
                return Nothing
             case res of 
-              Just _ -> do
-                token <- liftIO $ TS.get $ email user
-                setHeader "X-Token" token
+              Just databaseUser -> do
+                authenticationToken <- liftIO $ TS.get $ DatabaseUser._id databaseUser
+                emailConfirmationToken <- liftIO $ TS.get $ DatabaseUser.email databaseUser
+                setHeader "X-Token" authenticationToken
+                setHeader "X-Confirmation-Token" emailConfirmationToken
                 send201
               Nothing -> send422 >> sendJSON emailTakenResponse
           Left response ->  send422 >>  sendJSON response

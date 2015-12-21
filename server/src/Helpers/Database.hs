@@ -1,10 +1,18 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Helpers.Database (performDBAction) where
+module Helpers.Database (randomString, performDBAction) where
 
 import Data.Text (unpack)
 import Database.MongoDB
+import System.Random
+
 import qualified Helpers.Config as Config
+
+
+randomString :: IO String
+randomString = do
+    gen <- getStdGen
+    return $ take 20 $ randomRs ('a', 'z') gen
 
 performDBAction :: Action IO a -> IO a
 performDBAction action = do

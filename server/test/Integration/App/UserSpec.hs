@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE  QuasiQuotes #-}
-module Integration.AppSpec (spec) where
+module Integration.App.UserSpec (spec) where
 
 import Test.Hspec
 import Test.Hspec.Wai
@@ -44,11 +44,21 @@ spec :: Spec
 spec = around withCleanDatabase $ with app $ do
   describe "POST /users" $ do
     describe "when the user is valid" $ do
-      it "returns 201 and a valid token" $ do
+      it "returns 201" $ do
+        post "/users" (Aeson.encode validUser) `shouldRespondWith` 201
+
+      it "returns an authentication token" $ do
         post "/users" (Aeson.encode validUser) `shouldRespondWith` "" {
-          matchHeaders = [matchTokenPresence],
+          matchHeaders = [matchXTokenPresence],
           matchStatus = 201
         }
+
+      it "returns a confirmation token" $ do
+        post "/users" (Aeson.encode validUser) `shouldRespondWith` "" {
+          matchHeaders = [matchXConfirmationTokenPresence],
+          matchStatus = 201
+        }
+
     describe "when the json is malformed" $ do
       it "returns 400" $ do
         post "/users" "malformed}"  `shouldRespondWith`  400

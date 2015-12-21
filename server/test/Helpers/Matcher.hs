@@ -1,14 +1,23 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Helpers.Matcher (matchTokenPresence) where
+module Helpers.Matcher (matchXTokenPresence, matchXConfirmationTokenPresence) where
 
 import Test.Hspec.Wai
+import Network.HTTP.Types.Header
 
-matchTokenPresence :: MatchHeader
-matchTokenPresence =
+matchXTokenPresence :: MatchHeader
+matchXTokenPresence = matchTokenPresence "X-Token"
+
+matchXConfirmationTokenPresence :: MatchHeader
+matchXConfirmationTokenPresence = matchTokenPresence "X-Confirmation-Token"
+
+matchTokenPresence :: HeaderName -> MatchHeader
+matchTokenPresence token =
   MatchHeader $ \headers ->
-    case (filter (\h -> (fst h) == "X-Token") headers) of 
-      [] -> Just "NOTFOUND"
+    case (filter (\h -> (fst h) == token) headers) of 
+      [] -> Just ""
       _ -> Nothing
+
+
  
 
 

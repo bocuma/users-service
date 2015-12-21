@@ -25,6 +25,7 @@ executable users-service
                        , containers
                        , mongoDB
                        , pwstore-fast
+                       , random
                        , wai-extra
                        , scotty
                        , time
