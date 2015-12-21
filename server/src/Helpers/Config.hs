@@ -9,7 +9,7 @@ defaultConfig :: Map.Map String String
 defaultConfig = Map.fromList [
   ("MONGO_DB", "users"),
   ("MONGO_CL", "users"),
-  ("MONGO_URI", "mongo:27017")]
+  ("MONGO_URI", "localhost:27017")]
 
 getEnvOr :: String -> String -> IO Text
 getEnvOr key defaultValue = do

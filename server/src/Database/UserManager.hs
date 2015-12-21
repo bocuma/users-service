@@ -2,16 +2,15 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE ExtendedDefaultRules #-}
 
-module Database.UserManager (save, authenticate) where
+module Database.UserManager (save, authenticate, verifyConfirmation) where
 
 import Models.User as User
 import Models.DatabaseUser as DatabaseUser
 import Control.Monad.IO.Class
 import Crypto.PasswordStore
 import qualified Data.ByteString.Char8 as B
-import Database.MongoDB  (insert, select, findOne, at, (=:))
+import Database.MongoDB  (insert, select, findOne, at, (=:), modify)
 import Helpers.Database (performDBAction, randomString)
-
  
 save :: User.User -> IO (Maybe DatabaseUser.DatabaseUser)
 save user = 
@@ -38,6 +37,17 @@ authenticate user =
       Just u ->  do
         return $ verifyPassword (B.pack (User.password user)) (B.pack (at "password" u))
       Nothing -> return False
+
+verifyConfirmation :: User.User -> IO Bool
+verifyConfirmation user = 
+  do
+    dbUser <- performDBAction (findOne (select ["_id" =: (User.email user)] "users"))
+    performDBAction (modify (select ["_id" =: (User.email user)] "users") ["validate" =: True])
+    case dbUser of
+      Just u ->  do
+        return True
+      Nothing -> return False
+
 
 
 
