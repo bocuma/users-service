@@ -9,6 +9,7 @@ import qualified Database.UserManager as UM
 import Data.Text.Encoding (decodeUtf8)
 import Data.Time.Clock (getCurrentTime)
 import qualified Data.ByteString.Lazy as BL
+import qualified Data.Text.Lazy as TL
 import Models.User as User
 import Models.DatabaseUser as DatabaseUser
 import Control.Monad.IO.Class
@@ -61,10 +62,9 @@ app = do
                return Nothing
             case res of 
               Just databaseUser -> do
-                authenticationToken <- liftIO $ TS.get $ DatabaseUser._id databaseUser
-                emailToken <- liftIO $ TS.get $ DatabaseUser.email databaseUser
+                authenticationToken <- liftIO $ TS.get $ DatabaseUser.email databaseUser
                 setHeader "X-Token" authenticationToken
-                setHeader "X-Confirmation-Token" emailToken
+                setHeader "X-Confirmation-Token" (TL.pack (DatabaseUser.emailConfirmationToken databaseUser))
                 send201
               Nothing -> send422 >> sendJSON emailTakenResponse
           Left response ->  send422 >>  sendJSON response
