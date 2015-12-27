@@ -78,7 +78,8 @@ app = do
   post "/tokens/verify" $ do
     requestBody <- body
     now <- liftIO getCurrentTime
-    case (TS.verify now $ decodeUtf8 (BL.toStrict requestBody)) of
+    valid <- liftIO $ TS.verify now $ decodeUtf8 (BL.toStrict requestBody)
+    case valid of
       True -> do
         send200
       False -> 
