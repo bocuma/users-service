@@ -50,6 +50,9 @@ app = do
           Left _ ->  send401
       Nothing -> send400
 
+  get "/users" $ do
+    users <- liftIO $ UM.allUsers
+    send200 >> sendJSON users
   post "/users" $ do
     requestBody <- body
     let maybeUser = Aeson.decode requestBody :: Maybe User

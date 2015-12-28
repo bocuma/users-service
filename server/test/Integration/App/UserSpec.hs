@@ -15,6 +15,7 @@ import qualified Models.Errors.Code                 as EC
 import Models.User
 import Helpers.DatabaseTest
 import Helpers.Matcher
+import System.Random
 
 app :: IO Wai.Application
 app = Scotty.scottyApp App.app
@@ -42,6 +43,15 @@ emailTakenResponse = ER.Response { ER.email = [EC.emailTaken], ER.password = []}
 
 spec :: Spec
 spec = around withCleanDatabase $ with app $ do
+  describe "GET /users" $ do
+    it "returns 200" $ do
+      post "/users" (Aeson.encode validUser) `shouldRespondWith` 201
+      get "/users" `shouldRespondWith` 200
+    it "returns all the users" $ do
+      liftIO $ setStdGen (mkStdGen 12) 
+      post "/users" (Aeson.encode validUser) `shouldRespondWith` 201
+      get "/users" `shouldRespondWith` "[{\"email\":\"valid@email.com\",\"_id\":\"valid@email.com\",\"emailConfirmationToken\":\"xodqenspeaoagunzcjye\",\"confirmed\":false}]"
+
   describe "POST /users" $ do
     describe "when the user is valid" $ do
       it "returns 201" $ do
