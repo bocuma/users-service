@@ -39,7 +39,10 @@ spec = around DBHelper.withCleanDatabase $ with app $  do
     describe "when the confirmation token is valid" $ do
       it "returns 200" $ do
         liftIO $ DBHelper.withUser databaseUser
-        post "/users/sometoken/confirm" "" `shouldRespondWith` 200
-    describe "when the password is not valid" $ do
+        post "/users/valid@email.com/confirm" "sometoken" `shouldRespondWith` 200
+    describe "when the confirmation token is not valid" $ do
       it "returns 401" $ do
-        post "/users/someinvalitoken/confirm" "" `shouldRespondWith` 401
+        post "/users/valid@email.com/confirm" "someinvalidtoken" `shouldRespondWith` 401
+    describe "when the email is not valid" $ do
+      it "returns 401" $ do
+        post "/users/invalid@email.com/confirm" "sometoken" `shouldRespondWith` 401

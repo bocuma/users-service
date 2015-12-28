@@ -53,11 +53,11 @@ authenticate user =
         return $ verifyPassword (B.pack (User.password user)) (B.pack (at "password" u))
       Nothing -> return False
 
-verifyConfirmation :: String -> IO Bool
-verifyConfirmation emailConfirmationToken = 
+verifyConfirmation :: String -> String -> IO Bool
+verifyConfirmation id emailConfirmationToken = 
   do
     collection <- getConfig "MONGO_CL"
-    dbUser <- performDBAction (findOne (select ["emailConfirmationToken" =: emailConfirmationToken] collection))
+    dbUser <- performDBAction (findOne (select ["_id" =: id, "emailConfirmationToken" =: emailConfirmationToken] collection))
     case dbUser of
       Just u ->  do
         performDBAction (modify (select ["emailConfirmationToken" =: emailConfirmationToken] collection) ["$set" =: ["validate" =: True]])

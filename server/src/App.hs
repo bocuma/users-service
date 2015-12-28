@@ -7,6 +7,7 @@ import qualified Validators.UserValidator as UV
 import qualified Data.Aeson as Aeson
 import qualified Database.UserManager as UM
 import Data.Text.Encoding (decodeUtf8)
+import qualified Codec.Binary.UTF8.String as Utf8
 import Data.Time.Clock (getCurrentTime)
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.Text.Lazy as TL
@@ -72,9 +73,10 @@ app = do
               Nothing -> send422 >> sendJSON emailTakenResponse
           Left response ->  send422 >>  sendJSON response
       Nothing -> send400
-  post "/users/:confirmationToken/confirm" $ do
-    confirmationToken <- param "confirmationToken"
-    valid <- liftIO $ UM.verifyConfirmation confirmationToken
+  post "/users/:id/confirm" $ do
+    id <- param "id"
+    confirmationToken <- body
+    valid <- liftIO $ UM.verifyConfirmation id (Utf8.decode (BL.unpack confirmationToken))
     case valid of 
       True -> send200
       False -> send401
