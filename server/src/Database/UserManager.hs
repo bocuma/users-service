@@ -60,7 +60,7 @@ verifyConfirmation id emailConfirmationToken =
     dbUser <- performDBAction (findOne (select ["_id" =: id, "emailConfirmationToken" =: emailConfirmationToken] collection))
     case dbUser of
       Just u ->  do
-        performDBAction (modify (select ["emailConfirmationToken" =: emailConfirmationToken] collection) ["$set" =: ["validate" =: True]])
+        performDBAction (modify (select ["emailConfirmationToken" =: emailConfirmationToken] collection) ["$set" =: ["confirmed" =: True]])
         return True
       Nothing -> return False
 
