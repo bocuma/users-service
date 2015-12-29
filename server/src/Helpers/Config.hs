@@ -7,6 +7,7 @@ import Data.Text (pack, Text)
 
 defaultConfig :: Map.Map String String
 defaultConfig = Map.fromList [
+  ("PORT", "9000"),
   ("MONGO_DB", "users"),
   ("MONGO_CL", "users"),
   ("MONGO_URI", "mongo:27017"),
