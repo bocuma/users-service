@@ -2,17 +2,23 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE ExtendedDefaultRules #-}
 
-module Database.UserManager (save, allUsers, authenticate, verifyConfirmation) where
+module Database.UserManager (save, allUsers, userExists, authenticate, verifyConfirmation, deleteUser) where
 
 import Models.User as User
 import Models.DatabaseUser as DatabaseUser
 import Control.Monad.IO.Class
 import Crypto.PasswordStore
 import qualified Data.ByteString.Char8 as B
-import Database.MongoDB  (insert, rest, find, select, findOne, at, (=:), modify)
+import Database.MongoDB  (insert, rest, find, select, findOne, at, (=:), modify, delete)
 import Data.Bson as Bson
 import Helpers.Database (performDBAction, randomString)
 import Helpers.Config (getConfig)
+
+
+deleteUser id = do
+  collection <- getConfig "MONGO_CL"
+  performDBAction (delete (select ["_id" =: id] collection))
+
  
 allUsers :: IO [DatabaseUser]
 allUsers = do
@@ -24,7 +30,14 @@ allUsers = do
     DatabaseUser.emailConfirmationToken = Bson.at "emailConfirmationToken" x,
     DatabaseUser.confirmed = Bson.at "confirmed" x
   }) cursor
- 
+
+userExists :: String -> IO (Bool)
+userExists id = do
+  collection <- getConfig "MONGO_CL"
+  dbUser <- performDBAction (findOne (select ["_id" =: id] collection))
+  case dbUser of
+    Just u -> return True
+    Nothing -> return False
 
 save :: User.User -> IO (Maybe DatabaseUser.DatabaseUser)
 save user = 
@@ -44,14 +57,13 @@ save user =
       DatabaseUser.confirmed = False}
 
 authenticate :: User.User -> IO Bool
-authenticate user = 
-  do
-    collection <- getConfig "MONGO_CL"
-    dbUser <- performDBAction (findOne (select ["_id" =: (User.email user)] collection))
-    case dbUser of
-      Just u ->  do
-        return $ verifyPassword (B.pack (User.password user)) (B.pack (at "password" u))
-      Nothing -> return False
+authenticate user = do
+  collection <- getConfig "MONGO_CL"
+  dbUser <- performDBAction (findOne (select ["_id" =: (User.email user)] collection))
+  case dbUser of
+    Just u ->  do
+      return $ verifyPassword (B.pack (User.password user)) (B.pack (at "password" u))
+    Nothing -> return False
 
 verifyConfirmation :: String -> String -> IO Bool
 verifyConfirmation id emailConfirmationToken = 

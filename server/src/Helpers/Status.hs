@@ -16,6 +16,9 @@ send400 = status status400
 send401 :: ActionM ()
 send401 = status status401
 
+send404 :: ActionM ()
+send404 = status status404
+
 send201 :: ActionM ()
 send201 = status status201
 

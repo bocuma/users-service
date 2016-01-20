@@ -73,6 +73,32 @@ app = do
               Nothing -> send422 >> sendJSON emailTakenResponse
           Left response ->  send422 >>  sendJSON response
       Nothing -> send400
+  put "/users/:id" $ do
+    id <- param "id"
+    requestBody <- body
+    let maybeUser = Aeson.decode requestBody :: Maybe User
+    case maybeUser of
+      Just user -> 
+        case UV.isValid $ user of
+          Right _ -> do
+            userExists <- liftIO $ UM.userExists id
+            case userExists of
+              True -> do
+                res <- liftIO $ catchAny (UM.save user) $ \_ ->
+                 do
+                   return Nothing
+                case res of 
+                  Just databaseUser -> do
+                    liftIO $ UM.deleteUser id
+                    authenticationToken <- liftIO $ TS.get $ DatabaseUser.email databaseUser
+                    setHeader "X-Token" authenticationToken
+                    setHeader "X-Confirmation-Token" (TL.pack (DatabaseUser.emailConfirmationToken databaseUser))
+                    send201
+                  Nothing -> send422 >> sendJSON emailTakenResponse
+              False -> send404
+          Left response ->  send422 >>  sendJSON response
+      Nothing -> send400
+
   post "/users/:id/confirm" $ do
     id <- param "id"
     confirmationToken <- body
