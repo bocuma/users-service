@@ -13,7 +13,7 @@ withCleanDatabase :: ActionWith () -> IO ()
 withCleanDatabase action = do 
     Config.getConfig "MONGO_DB" >>= \dbName ->
       let dropDB = performDBAction $ dropDatabase dbName
-      in dropDB >> action () >> dropDB >> UM.createIndex >> return ()
+      in dropDB >> UM.createIndex >> action () >> dropDB >> UM.createIndex >> return ()
 
 defaultPassword = "somepassword"
 
