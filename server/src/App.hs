@@ -84,15 +84,13 @@ app = do
             userExists <- liftIO $ UM.userExists id
             case userExists of
               True -> do
-                res <- liftIO $ catchAny (UM.save user) $ \_ ->
+                res <- liftIO $ catchAny (UM.update id user) $ \_ ->
                  do
                    return Nothing
                 case res of 
                   Just databaseUser -> do
-                    liftIO $ UM.deleteUser id
                     authenticationToken <- liftIO $ TS.get $ DatabaseUser.email databaseUser
                     setHeader "X-Token" authenticationToken
-                    setHeader "X-Confirmation-Token" (TL.pack (DatabaseUser.emailConfirmationToken databaseUser))
                     send201
                   Nothing -> send422 >> sendJSON emailTakenResponse
               False -> send404

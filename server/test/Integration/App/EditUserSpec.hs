@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE  QuasiQuotes #-}
+
 module Integration.App.EditUserSpec (spec) where
 
 import Test.Hspec
@@ -9,9 +10,13 @@ import qualified App
 import qualified Web.Scotty                 as Scotty
 import qualified Network.Wai                as Wai
 import qualified Data.Aeson                 as Aeson
+import qualified Data.ByteString.Lazy as BS
+import Text.Regex.Posix ((=~))
 
 import qualified Models.Errors.Response                 as ER
 import qualified Models.Errors.Code                 as EC
+import Network.Wai.Test (SResponse(simpleBody))
+import Network.HTTP.Types.Method
 import Models.User
 import Helpers.DatabaseTest
 import Helpers.Matcher
@@ -44,6 +49,9 @@ invalidEmailAndPasswordUserResponse = ER.Response { ER.email = [EC.invalidEmail]
 emailTakenResponse :: ER.Response
 emailTakenResponse = ER.Response { ER.email = [EC.emailTaken], ER.password = []}
 
+matchRegexBody :: String -> BS.ByteString  -> Bool
+matchRegexBody regex body = (body =~ regex) :: Bool
+ 
 spec :: Spec
 spec = around withCleanDatabase $ with app $ do
   describe "PUT /users/:id" $ do
@@ -57,13 +65,10 @@ spec = around withCleanDatabase $ with app $ do
           matchHeaders = [matchXTokenPresence],
           matchStatus = 201
         }
-
-      it "returns a confirmation token" $ do
-        post "/users" (Aeson.encode validUser) `shouldRespondWith` 201
-        put "/users/valid@email.com" (Aeson.encode updatedUser) `shouldRespondWith` "" {
-          matchHeaders = [matchXConfirmationTokenPresence],
-          matchStatus = 201
-        }
+        r <- request methodGet "/users" [] ""
+        liftIO $ do
+          simpleBody r `shouldSatisfy` 
+            matchRegexBody "valid2@email.com"
 
     describe "when the json is malformed" $ do
       it "returns 400" $ do

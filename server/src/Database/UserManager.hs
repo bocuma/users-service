@@ -2,7 +2,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE ExtendedDefaultRules #-}
 
-module Database.UserManager (save, allUsers, userExists, authenticate, verifyConfirmation, deleteUser, createIndex) where
+module Database.UserManager (save, allUsers, userExists, authenticate, verifyConfirmation, createIndex, update) where
 
 import Models.User as User
 import Models.DatabaseUser as DatabaseUser
@@ -15,10 +15,6 @@ import Data.Bson as Bson
 import Helpers.Database (performDBAction, randomString)
 import Helpers.Config (getConfig)
 
-
-deleteUser id = do
-  collection <- getConfig "MONGO_CL"
-  performDBAction (delete (select ["_id" =: id] collection))
 
 createIndex = do
   collection <- getConfig "MONGO_CL"
@@ -65,6 +61,17 @@ save user =
       DatabaseUser.email = User.email user, 
       DatabaseUser.emailConfirmationToken = token,
       DatabaseUser.confirmed = False}
+
+update :: String -> User.User -> IO (Maybe DatabaseUser.DatabaseUser)
+update id user = 
+  do
+    token <- randomString
+    ps <- liftIO $ makePassword (B.pack (User.password user)) 17
+    collection <- getConfig "MONGO_CL"
+    _ <- performDBAction $ modify (select ["email" =: id] collection) ["$set" =: [ "email" =: (User.email user), "password" =: (B.unpack ps)]]
+    return $ Just $ DatabaseUser.DatabaseUser { DatabaseUser.email = User.email user}
+
+
 
 authenticate :: User.User -> IO Bool
 authenticate user = do
