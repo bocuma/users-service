@@ -2,14 +2,15 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE ExtendedDefaultRules #-}
 
-module Database.UserManager (save, allUsers, userExists, authenticate, verifyConfirmation, deleteUser) where
+module Database.UserManager (save, allUsers, userExists, authenticate, verifyConfirmation, deleteUser, createIndex) where
 
 import Models.User as User
 import Models.DatabaseUser as DatabaseUser
 import Control.Monad.IO.Class
 import Crypto.PasswordStore
 import qualified Data.ByteString.Char8 as B
-import Database.MongoDB  (insert, rest, find, select, findOne, at, (=:), modify, delete)
+import Database.MongoDB  (insert, rest, find, select, findOne, at, (=:), modify, delete, ensureIndex)
+import Database.MongoDB.Admin (Index(..))
 import Data.Bson as Bson
 import Helpers.Database (performDBAction, randomString)
 import Helpers.Config (getConfig)
@@ -19,14 +20,24 @@ deleteUser id = do
   collection <- getConfig "MONGO_CL"
   performDBAction (delete (select ["_id" =: id] collection))
 
- 
+createIndex = do
+  collection <- getConfig "MONGO_CL"
+  performDBAction $ ensureIndex $ Index {
+    iColl = collection,
+    iKey = ["email" =: 1],
+    iName = "email_unique",
+    iUnique = True,
+    iExpireAfterSeconds = Nothing,
+    iDropDups = True
+  }
+  
 allUsers :: IO [DatabaseUser]
 allUsers = do
   collection <- getConfig "MONGO_CL"
   cursor <- performDBAction (rest =<< (find (select [] collection)))  
   return $ map (\x -> DatabaseUser.DatabaseUser {
-    DatabaseUser._id = Bson.at "_id" x,
-    DatabaseUser.email = Bson.at "_id" x,
+    DatabaseUser._id = Bson.at "email" x,
+    DatabaseUser.email = Bson.at "email" x,
     DatabaseUser.emailConfirmationToken = Bson.at "emailConfirmationToken" x,
     DatabaseUser.confirmed = Bson.at "confirmed" x
   }) cursor
@@ -34,7 +45,7 @@ allUsers = do
 userExists :: String -> IO (Bool)
 userExists id = do
   collection <- getConfig "MONGO_CL"
-  dbUser <- performDBAction (findOne (select ["_id" =: id] collection))
+  dbUser <- performDBAction (findOne (select ["email" =: id] collection))
   case dbUser of
     Just u -> return True
     Nothing -> return False
@@ -46,12 +57,11 @@ save user =
     ps <- liftIO $ makePassword (B.pack (User.password user)) 17
     collection <- getConfig "MONGO_CL"
     _ <- performDBAction (insert collection [
-      "_id" =: (User.email user), 
+      "email" =: (User.email user), 
       "password" =: (B.unpack ps), 
       "confirmed" =: False,
       "emailConfirmationToken" =: token])
     return $ Just $ DatabaseUser.DatabaseUser { 
-      DatabaseUser._id = User.email user,
       DatabaseUser.email = User.email user, 
       DatabaseUser.emailConfirmationToken = token,
       DatabaseUser.confirmed = False}
@@ -59,7 +69,7 @@ save user =
 authenticate :: User.User -> IO Bool
 authenticate user = do
   collection <- getConfig "MONGO_CL"
-  dbUser <- performDBAction (findOne (select ["_id" =: (User.email user)] collection))
+  dbUser <- performDBAction (findOne (select ["email" =: (User.email user)] collection))
   case dbUser of
     Just u ->  do
       return $ verifyPassword (B.pack (User.password user)) (B.pack (at "password" u))
@@ -69,7 +79,7 @@ verifyConfirmation :: String -> String -> IO Bool
 verifyConfirmation id emailConfirmationToken = 
   do
     collection <- getConfig "MONGO_CL"
-    dbUser <- performDBAction (findOne (select ["_id" =: id, "emailConfirmationToken" =: emailConfirmationToken] collection))
+    dbUser <- performDBAction (findOne (select ["email" =: id, "emailConfirmationToken" =: emailConfirmationToken] collection))
     case dbUser of
       Just u ->  do
         performDBAction (modify (select ["emailConfirmationToken" =: emailConfirmationToken] collection) ["$set" =: ["confirmed" =: True]])
