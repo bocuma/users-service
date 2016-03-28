@@ -15,7 +15,6 @@ import Data.Bson as Bson
 import Helpers.Database (performDBAction, randomString)
 import Helpers.Config (getConfig)
 
-
 createIndex = do
   collection <- getConfig "MONGO_CL"
   performDBAction $ ensureIndex $ Index {
