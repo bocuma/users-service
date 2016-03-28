@@ -8,26 +8,19 @@ import Test.Hspec.Wai
 import qualified App
 import qualified Web.Scotty                 as Scotty
 import qualified Network.Wai                as Wai
-import qualified Data.Aeson                 as Aeson
-
-import Models.User
-import qualified Services.TokenService as TS 
-import Data.Text.Lazy.Encoding (encodeUtf8)
 
 import qualified Helpers.DatabaseTest as DBHelper
-import Helpers.Matcher
 import qualified Models.DatabaseUser as DatabaseUser
-
-tokenEmail :: String
-tokenEmail = "test@email.com"
 
 app :: IO Wai.Application
 app = Scotty.scottyApp App.app
 
+userEmail :: String
 userEmail = "valid@email.com"
 
 databaseUser :: DatabaseUser.DatabaseUser
 databaseUser = DatabaseUser.DatabaseUser {
+  DatabaseUser._id = "something",
   DatabaseUser.email = userEmail,
   DatabaseUser.emailConfirmationToken = "sometoken",
   DatabaseUser.confirmed = False

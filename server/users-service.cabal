@@ -23,7 +23,7 @@ executable users-service
                        , jwt
                        , http-types
                        , containers
-                       , mongoDB
+                       , mongoDB == 2.0.10
                        , pwstore-fast
                        , random
                        , wai-extra

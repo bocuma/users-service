@@ -71,8 +71,6 @@ update id user =
     _ <- performDBAction $ modify (select ["email" =: id] collection) ["$set" =: [ "email" =: (User.email user), "password" =: (B.unpack ps)]]
     return $ Just $ DatabaseUser.DatabaseUser { DatabaseUser.email = User.email user}
 
-
-
 authenticate :: User.User -> IO Bool
 authenticate user = do
   collection <- getConfig "MONGO_CL"
@@ -92,7 +90,3 @@ verifyConfirmation id emailConfirmationToken =
         performDBAction (modify (select ["emailConfirmationToken" =: emailConfirmationToken] collection) ["$set" =: ["confirmed" =: True]])
         return True
       Nothing -> return False
-
-
-
-
