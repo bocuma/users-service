@@ -33,6 +33,11 @@ build:
           cabal update
     - script:
         cwd: server/
+        name: cabal-configure
+        code: |
+          cabal configure
+    - script:
+        cwd: server/
         name: install
         code: |
           cabal install --enable-tests
