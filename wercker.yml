@@ -3,6 +3,11 @@ dev:
   steps:
     - script:
         cwd: server/
+        name: cabal-configure
+        code: |
+          cabal configure
+    - script:
+        cwd: server/
         name: cabal-update
         code: |
           cabal update
