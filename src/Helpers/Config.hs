@@ -10,7 +10,7 @@ defaultConfig = Map.fromList [
   ("PORT", "9000"),
   ("MONGO_DB", "users"),
   ("MONGO_CL", "users"),
-  ("MONGO_URI", "mongo:27017"),
+  ("MONGO_URI", "localhost:27017"),
   ("TOKEN_SECRET", "testtokensecret")]
 
 getEnvOr :: String -> String -> IO Text

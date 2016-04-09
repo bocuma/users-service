@@ -1,62 +1,31 @@
 box: haskell:7.10
-dev:
-  steps:
-    - script:
-        cwd: server/
-        name: cabal-configure
-        code: |
-          cabal configure
-    - script:
-        cwd: server/
-        name: cabal-update
-        code: |
-          cabal update
-    - script:
-        cwd: server/
-        name: cabal-install
-        code: |
-          cabal install --enable-tests
-    - internal/watch:
-        cwd: server/
-        code: |
-          cabal test
-          cabal run
-        reload: true
 build:
   services:
     - id: mongo
   steps:
     - script:
-        cwd: server/
-        name: update
+        name: stack setup
         code: |
-          cabal update
+          stack setup
     - script:
-        cwd: server/
-        name: install
+        name: stack build
         code: |
-          cabal install --enable-tests
+          stack build
     - script:
-        cwd: server/
-        name: cabal-configure
+        name: stack test
         code: |
-          cabal configure
-    - script:
-        cwd: server/
-        name: test
-        code: |
-          cabal test
+          stack test
     - script:
         name: copy artifact
         code: |
-          cp server/dist/build/users-service/users-service "$WERCKER_OUTPUT_DIR"
+          cp .stack-work/install/x86_64-linux/lts-5.11/7.10.3/bin/buzzstation-user-service-exe "$WERCKER_OUTPUT_DIR"
 deploy:
   box: python:2.7-slim
   steps:
     - internal/docker-push:
       username: $DOCKER_USER
       password: $DOCKER_PASS
-      repository: cammellos/users-service
-      cmd: "./pipeline/source/users-service"
+      repository: cammellos/buzzstation-users-service
+      cmd: "./pipeline/source/buzzstation-campaign-manager-exe"
       ports: 9000
       registry: https://registry.hub.docker.com
